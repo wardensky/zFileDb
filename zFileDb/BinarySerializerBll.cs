@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Xml.Serialization;
 namespace wardensky.xmldb
 {
     public class BinarySerializerBll<T> : AbstractSerializeBll<T>
     {
         private static BinarySerializerBll<T> instance;
-
+        private BinaryFormatter bf = new BinaryFormatter();
         private BinarySerializerBll()
         {
             this.SetDbFile();
@@ -31,14 +29,12 @@ namespace wardensky.xmldb
         {
             lock (this.lockObject)
             {
-                Console.WriteLine("call write db");
                 FileInfo fi = new FileInfo(this.Dbfile);
                 var dir = fi.Directory;
                 if (!dir.Exists)
                 {
                     dir.Create();
                 }
-                BinaryFormatter bf = new BinaryFormatter();
                 FileMode mode = fi.Exists ? FileMode.Open : FileMode.Create;
                 using (FileStream fs = new FileStream(this.Dbfile, mode, FileAccess.ReadWrite))
                 {
@@ -46,17 +42,16 @@ namespace wardensky.xmldb
                 }
             }
         }
+       
         protected override void ReadDb()
         {
             if (File.Exists(this.Dbfile))
             {
-                Console.WriteLine("ReadDb");
                 lock (this.lockObject)
                 {
                     FileInfo fi = new FileInfo(this.Dbfile);
                     if (fi.Length > 0)
                     {
-                        BinaryFormatter bf = new BinaryFormatter();
                         using (FileStream fs = new FileStream(this.Dbfile, FileMode.Open, FileAccess.ReadWrite))
                         {
                             this.entityList = bf.Deserialize(fs) as List<T>;

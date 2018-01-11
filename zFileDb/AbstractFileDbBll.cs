@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,19 +13,21 @@ namespace wardensky.xmldb
             set { bll.Dbfile = value; }
         }
         protected AbstractSerializeBll<T> bll;
-        public void Delete(string id)
+        public bool Delete(string id)
         {
             var entity = this.Select(id);
             bll.DeleteById(id);
+            return true;
         }
 
-        public void Delete(Expression<Func<T, bool>> express)
+        public bool Delete(Expression<Func<T, bool>> express)
         {
             T data = this.SelectAll().Where(express.Compile()).First();
             if (data != null)
             {
                 this.Delete(this.GetIdValue(data));
             }
+            return true;
         }
 
         protected String SetIdGuid(T t)
@@ -40,7 +41,6 @@ namespace wardensky.xmldb
                     pi.SetValue(t, id);
                 }
             }
-
             return id;
         }
 
@@ -52,47 +52,60 @@ namespace wardensky.xmldb
                 if (pi.Name.ToLower().Equals("id"))
                 {
                     object o = pi.GetValue(t, null);
-
                     return o == null ? "" : o.ToString();
                 }
             }
-
             return "";
         }
 
-        public void Insert(T entity)
+        public T Insert(T entity)
         {
             if (entity == null)
             {
-                return;
+                throw new ArgumentException("object is null");
+            }
+            if (String.IsNullOrEmpty(this.GetIdValue(entity)))
+            {
+                throw new ArgumentException("object does not have valid id value");
+            }
+            this.bll.Insert(entity);
+            return entity;
+        }
+        public T InsertOrUpdate(T entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentException("object is null");
             }
             string id = this.GetIdValue(entity);
-            if (!String.IsNullOrEmpty(id))
-            {
-                T old = this.Select(id);
-                if (old != null)
-                {
-                    this.bll.UpdateById(entity);
-                    return;
-                }
-            }
             if (String.IsNullOrEmpty(id))
             {
-                this.SetIdGuid(entity);
+                throw new ArgumentException("object does not have valid id value");
             }
+            T old = this.Select(id);
+            if (old != null)
+            {
+                this.bll.UpdateById(entity);
+                return entity;
+            }
+
             bll.Insert(entity);
+            return entity;
         }
-        public void Insert(List<T> list)
+
+        public List<T> Insert(List<T> list)
         {
             bll.InsertRange(list);
+            return list;
         }
         public System.Collections.Generic.List<T> SelectAll()
         {
             return bll.SelectAll();
         }
-        public void Update(string oldId, T entity)
+        public T Update(string oldId, T entity)
         {
             bll.UpdateById(entity);
+            return entity;
         }
         public T Select(string id)
         {
@@ -102,9 +115,10 @@ namespace wardensky.xmldb
         {
             return bll.SelectBy(name, value);
         }
-        public void DeleteAll()
+        public bool DeleteAll()
         {
             bll.DeleteAll();
+            return true;
         }
     }
 }

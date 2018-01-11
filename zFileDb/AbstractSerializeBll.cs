@@ -41,7 +41,6 @@ namespace wardensky.xmldb
             {
                 this.Dbfile = Path.Combine(folder, type.Name + suffix);
             }
-
         }
 
         public void Insert(T entity)
@@ -79,21 +78,8 @@ namespace wardensky.xmldb
         }
         public T SelectById(string id)
         {
-            Type t = typeof(T);
-            foreach (var inst in this.entityList)
-            {
-                foreach (PropertyInfo pro in t.GetProperties())
-                {
-                    if (pro.Name.ToLower() == "id")
-                    {
-                        if (id == (pro.GetValue(inst, null) ?? string.Empty).ToString())
-                        {
-                            return inst;
-                        }
-                    }
-                }
-            }
-            return default(T);
+            List<T> list = this.SelectBy("id", id);
+            return list.Count == 0 ? default(T) : list[0];
         }
         public void UpdateById(T entity)
         {
@@ -110,28 +96,18 @@ namespace wardensky.xmldb
             this.DeleteById(id);
             this.Insert(entity);
         }
-        public void DeleteById(string id)
+        public bool DeleteById(string id)
         {
-            Type t = typeof(T);
-            T entity = default(T);
-            foreach (var inst in this.entityList)
+            T t = this.SelectById(id);
+            if (t == null)
             {
-                foreach (PropertyInfo pro in t.GetProperties())
-                {
-                    if (pro.Name.ToLower() == "id")
-                    {
-                        if ((pro.GetValue(inst, null) ?? string.Empty).ToString() == id)
-                        {
-                            entity = inst;
-                            goto FinishLoop;
-                        }
-                    }
-                }
+                return false;
             }
-        FinishLoop:
-            this.entityList.Remove(entity);
+            this.entityList.Remove(t);
             this.WriteDb();
+            return true;
         }
+
         public List<T> SelectAll()
         {
             return this.entityList;
