@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileDbTest
 {
@@ -12,6 +8,15 @@ namespace FileDbTest
         public string Id { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
+
+        public static TestModel GetModel()
+        {
+            TestModel model = new TestModel();
+            model.Age = 10;
+            model.Id = Guid.NewGuid().ToString();
+            model.Name = "keke";
+            return model;
+        }
 
     }
 }

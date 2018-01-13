@@ -7,6 +7,7 @@ namespace wardensky.xmldb
     public interface IFileDbBll<T> where T : new()
     {
         bool Delete(string id);
+        bool Delete(T t);
 
         bool Delete(Expression<Func<T, bool>> express);
 
@@ -14,15 +15,17 @@ namespace wardensky.xmldb
 
         T InsertOrUpdate(T entity);
 
-        List<T> Insert(List<T> list);
+        IList<T> Insert(IList<T> list);
 
-        System.Collections.Generic.List<T> SelectAll();
+        IList<T> SelectAll();
 
         T Update(string oldId, T entity);
 
         T Select(string id);
 
-        System.Collections.Generic.List<T> SelectBy(string name, object value);
+        IList<T> Select(Expression<Func<T, bool>> express);
+
+        IList<T> SelectBy(string name, object value);
 
         bool DeleteAll();
 
